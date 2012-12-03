@@ -212,6 +212,7 @@ var parseGIF = function(st, handler) {
       var blockSize = st.readByte(); // Always 11
       block.identifier = st.read(8);
       block.authCode = st.read(3);
+
       switch (block.identifier) {
         case 'NETSCAPE':
           parseNetscapeExt(block);
@@ -228,7 +229,6 @@ var parseGIF = function(st, handler) {
     };
 
     block.label = st.readByte();
-    console.log(block.label);
     switch (block.label) {
       case 0xF9:
         block.extType = 'gce';
@@ -320,6 +320,7 @@ var parseGIF = function(st, handler) {
         parseExt(block);
         break;
       case ',':
+        console.log(block);
         block.type = 'img';
         parseImg(block);
         break;

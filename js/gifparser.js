@@ -18,7 +18,8 @@ var GifParser = function(view) {
 		    	pixelAspRatio: 0,
 		    	gct: null
 		},
-		blocks = [];
+		blocks = [],
+		frames = [];
 
 	function isGif() {
 		return (img.type === 'GIF');
@@ -32,9 +33,10 @@ var GifParser = function(view) {
 		img.width = jview.getUint16(jview.tell(),true);
 		img.height = jview.getUint16(jview.tell(),true);
 		//Must reset
+		var reset = jview.tell();
 		img.frames = frameCount();
 		//Counting the frames in a loop will FUCK UP .tell(), so reset back to where it should be
-		jview.seek(10);
+		jview.seek(reset);
 	}
 
 	function getHeader() {
@@ -62,7 +64,6 @@ var GifParser = function(view) {
 		var block = {};
 		//Start parsing out blocks;
 		//Passing in object blocks by reference 
-
 		block.sentinel = jview.getUint8(jview.tell());
 		switch(String.fromCharCode(block.sentinel)) {
 			case '!':
@@ -83,7 +84,11 @@ var GifParser = function(view) {
 				throw new Error('Did not expect 0x' . block.sentinel.toString(16));
 		}
 
-		blocks.push(block);
+		if (block.type === 'img') {
+			frames.push(block);
+		} else {
+			blocks.push(block)
+		}
 		//Loop through and grab all blocks
 		if (block.type !== 'eof') {
 			getBlocks();
@@ -94,13 +99,18 @@ var GifParser = function(view) {
 
 		function getAppBlock(block) {
 			block.type = 'app';
+			//Always 11
 			block.size = jview.getUint8(jview.tell());
 			block.identifier = jview.getString(8, jview.tell());
 			block.authCode = jview.getString(3, jview.tell());
-			//Skipping sub block, read that shit later, +1 for 00 terminate
-			var sub = jview.getUint8(jview.tell());
 
-			jview.seek(jview.tell() + parseInt(sub, 16));
+			if (block.identifier === 'NETSCAPE') {
+				var sub = jview.getUint8(jview.tell());
+				jview.seek(jview.tell() + parseInt(sub, 16) + 1);
+			} else {
+				var data = getSubBlocks();
+				block.data = data;
+			}
 		}
 
 		function getComBlock(block) {
@@ -115,18 +125,18 @@ var GifParser = function(view) {
 			block.disposal = bitsToNum(bits.splice(0,3));
 			block.userInput = bits.shift();
 			block.transColor = bits.shift();
-			block.delay(jview.getUint16(jview.tell(),true));
+			block.delay = jview.getUint16(jview.tell(),true);
 			block.transColorInd = jview.getUint8(jview.tell());
 			//Ends in 00 Block term, should just seek over instead of get Uint8
-			jview.getUint8(jview.tell());
+			jview.seek(jview.tell() + 1);			
 		}
 
 		function getPTEBlock(block) {
 			block.type = 'pte';
 		}
 
-
 		block.label = jview.getUint8(jview.tell());
+
 		switch(block.label) {
 			case 255:
 				//App Extensions
@@ -150,6 +160,30 @@ var GifParser = function(view) {
 
 	function getImage(block) {
 
+		block.left = jview.getUint16(jview.tell(), true);
+		block.top = jview.getUint16(jview.tell(),true);
+		block.width = jview.getUint16(jview.tell(),true);
+		block.height = jview.getUint16(jview.tell(),true);
+		var bits = byteToBitArr(jview.getUint8(jview.tell()));
+		block.lctFlag = bits.shift();
+		block.interlaced = bits.shift();
+		block.sort = bits.shift();
+		block.reserved = bits.splice(0,2);
+		block.lctSize = bitsToNum(bits.splice(0,3));
+
+		if (block.lctFlag) {
+			block.lct = getColorTable(1 << (block.lctSize + 1));
+		}
+
+		block.lzwMinCodeSize = jview.getUint8(jview.tell());
+		var lzwData = getSubBlocks();
+		block.data = lzwData;
+		//block.pixels = lzwDecode(block.lzwMinCodeSize, lzwData);
+
+		if (block.interlaced) {
+			//Pass in object so we don't copy pixel table and make GC work
+			//deinterlace(block,block.width);
+		}
 	}
 
 	function getColorTable(ent) {
@@ -158,6 +192,14 @@ var GifParser = function(view) {
 	      ct.push(getBytes(3));
 	    }
 	    return ct;
+	}
+	function getSubBlocks() {
+		var subBlockSize = 0, data = '';
+		do {
+			subBlockSize = jview.getUint8(jview.tell());
+			data += jview.getString(subBlockSize, jview.tell());
+		} while (subBlockSize !== 0)
+		return data;
 	}
 
 	function frameCount() {
@@ -203,7 +245,8 @@ var GifParser = function(view) {
 		info: info,
 		img: img,
 		blocks: blocks,
-		header: header
+		header: header,
+		frames: frames
 	}
 
 }
