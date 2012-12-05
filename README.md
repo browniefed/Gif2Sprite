@@ -11,3 +11,13 @@ I set out to create one library and after the complexity of splitting gif frames
 Serious props to http://www.matthewflickinger.com/lab/whatsinagif/index.html , wikipedia on GIFs, and https://github.com/shachaf/jsgif
 
 jsgif does the GifParsing(getting frames) and with the bookmarklet allowed you to control them but only in an asynchronous manner and hasn't been updated in 2 years, but was a great resource.
+
+TODO
+----------------
+
+1. Fast LZW Gif Decompression
+2. Create a class to read Bytes, too many getUint8/getUint16s scatted everywhere
+3. Make some sub classes inside GifParser
+4. Handle GIFs more properly
+5. Make a sprite out of the shit... duh
+6. Make asynchronous so execution does get stopped like it does now, TOO SLOW!
