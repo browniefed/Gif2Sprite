@@ -23,7 +23,7 @@
 	<script src="js/gif2sprite.js"></script>
 	<script type="text/javascript">
 	//bookmarklet();
-	var ronswan = Gif2Sprite('img/swansondance.gif');
+	var ronswan = Gif2Sprite('img/dancing.gif');
 	var parser = ronswan.toSprite(true);
 
 	$.each(parser.frames, function(i, val) {

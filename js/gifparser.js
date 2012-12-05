@@ -265,7 +265,7 @@ var GifParser = function(view) {
 
 		imgData = context.getImageData(img.top, img.left, img.width, img.height);
 		img.pixels.forEach(function(pixel, i) {
-			if (pixel !== 255) {
+			if (pixel !== 14) {
 				imgData.data[i * 4 + 0] = header.gct[pixel][0];
 				imgData.data[i * 4 + 1] = header.gct[pixel][1];
 				imgData.data[i * 4 + 2] = header.gct[pixel][2];
