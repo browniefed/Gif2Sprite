@@ -12,6 +12,7 @@ Serious props to http://www.matthewflickinger.com/lab/whatsinagif/index.html , w
 
 jsgif does the GifParsing(getting frames) and with the bookmarklet allowed you to control them but only in an asynchronous manner and hasn't been updated in 2 years, but was a great resource.
 
+
 TODO
 ----------------
 
