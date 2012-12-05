@@ -26,7 +26,14 @@
 	<script type="text/javascript">
 	bookmarklet();
 	var ronswan = Gif2Sprite('img/swansondance.gif');
-	ronswan.toSprite(true);
+	var parser = ronswan.toSprite(true);
+	$.each(parser.frames, function(i, val) {
+		console.log(val);
+		var img = $('<img />', {
+			src: val.imgData
+		});
+		$('#fillme').append(img);
+	});
 	</script>
 	</body>
 </html>

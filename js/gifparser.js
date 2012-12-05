@@ -19,7 +19,9 @@ var GifParser = function(view) {
 		    	gct: null
 		},
 		blocks = [],
-		frames = [];
+		frames = [],
+		canvas = document.createElement('canvas'),
+		context = canvas.getContext('2d');
 
 	function isGif() {
 		return (img.type === 'GIF');
@@ -185,6 +187,7 @@ var GifParser = function(view) {
 			//Pass in object so we don't copy pixel table and make GC work
 			//deinterlace(block,block.width);
 		}
+		block.imgData = pixelsToData(block);
 	}
 
 	function lzwDecode(minCodeSize, data) {
@@ -254,6 +257,17 @@ var GifParser = function(view) {
 	  //if (Math.ceil(pos / 8) !== data.length) throw new Error('Extraneous LZW bytes.');
 	  return output;
 	};
+	function pixelsToData(img) {
+		var imgData = context.getImageData(img.left, img.top, img.width, img.height);
+		img.pixels.forEach(function(pixel, i) {
+			imgData.data[i * 4 + 0] = header.gct[pixel][0];
+			imgData.data[i * 4 + 1] = header.gct[pixel][1];
+			imgData.data[i * 4 + 2] = header.gct[pixel][2];
+			imgData.data[i * 4 + 3] = 255;
+		});
+		context.putImageData(imgData, img.left, img.top);
+		return canvas.toDataURL();
+	}
 
 	function getColorTable(ent) {
 		var ct = [];

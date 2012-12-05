@@ -13,8 +13,7 @@ var Gif2Sprite = Gif2Sprite || {};
 			try {
 				file = getFile();
 				var parser = new GifParser(new jDataView(file));
-				console.log(parser);
-				
+				return parser;
 			} catch (err) {
 				//Handle the error
 				console.log(err)
