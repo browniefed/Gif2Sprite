@@ -300,11 +300,13 @@ var parseGIF = function(st, handler) {
     img.lzwMinCodeSize = st.readByte();
 
     var lzwData = readSubBlocks();
+    img.data = lzwData;
     img.pixels = lzwDecode(img.lzwMinCodeSize, lzwData);
 
     if (img.interlaced) { // Move
       img.pixels = deinterlace(img.pixels, img.width);
     }
+    console.log(img);
 
     handler.img && handler.img(img);
     
