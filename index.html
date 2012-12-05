@@ -12,6 +12,7 @@
 	<img src="img/swansondance.gif">
 	<img src="img/rotatingearth.gif">
 	<img src="img/sample.gif">
+	<img src="img/dancing.gif">
 	<div id="fillme">
 	
 	</div>
@@ -25,8 +26,9 @@
 	<script src="js/html.js"></script>
 	<script type="text/javascript">
 	bookmarklet();
-	var ronswan = Gif2Sprite('img/rotatingearth.gif');
+	var ronswan = Gif2Sprite('img/swansondance.gif');
 	var parser = ronswan.toSprite(true);
+
 	$.each(parser.frames, function(i, val) {
 		console.log(val);
 		var img = $('<img />', {

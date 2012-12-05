@@ -21,7 +21,8 @@ var GifParser = function(view) {
 		blocks = [],
 		frames = [],
 		canvas = document.createElement('canvas'),
-		context = canvas.getContext('2d');
+		context = canvas.getContext('2d'),
+		imgData = null;
 
 	function isGif() {
 		return (img.type === 'GIF');
@@ -37,6 +38,9 @@ var GifParser = function(view) {
 		//Must reset
 		var reset = jview.tell();
 		img.frames = frameCount();
+
+		canvas.width = img.width;
+		canvas.height = img.height;
 		//Counting the frames in a loop will FUCK UP .tell(), so reset back to where it should be
 		jview.seek(reset);
 	}
@@ -258,18 +262,16 @@ var GifParser = function(view) {
 	  return output;
 	};
 	function pixelsToData(img) {
-		canvas.width = img.width;
-		canvas.height = img.height;
-		var imgData = context.createImageData(img.width, img.height);
-		console.log(img.width, img.height);
+
+		imgData = context.getImageData(img.top, img.left, img.width, img.height);
 		img.pixels.forEach(function(pixel, i) {
-			if(255 != pixel) {
+			if (pixel !== 255) {
 				imgData.data[i * 4 + 0] = header.gct[pixel][0];
 				imgData.data[i * 4 + 1] = header.gct[pixel][1];
 				imgData.data[i * 4 + 2] = header.gct[pixel][2];
 				imgData.data[i * 4 + 3] = 255;
 			} else {
-				imgData.data[i * 4 + 3] = 0;
+
 			}
 		});
 		context.putImageData(imgData, img.left, img.top);
@@ -351,3 +353,19 @@ var GifParser = function(view) {
 	}
 
 }
+
+/*
+Reader
+
+GifParser
+-- call init
+
+Intro
+--
+Header
+--
+Blocks
+--Ext
+--Image
+
+*/
