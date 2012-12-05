@@ -258,12 +258,19 @@ var GifParser = function(view) {
 	  return output;
 	};
 	function pixelsToData(img) {
-		var imgData = context.getImageData(img.left, img.top, img.width, img.height);
+		canvas.width = img.width;
+		canvas.height = img.height;
+		var imgData = context.createImageData(img.width, img.height);
+		console.log(img.width, img.height);
 		img.pixels.forEach(function(pixel, i) {
-			imgData.data[i * 4 + 0] = header.gct[pixel][0];
-			imgData.data[i * 4 + 1] = header.gct[pixel][1];
-			imgData.data[i * 4 + 2] = header.gct[pixel][2];
-			imgData.data[i * 4 + 3] = 255;
+			if(255 != pixel) {
+				imgData.data[i * 4 + 0] = header.gct[pixel][0];
+				imgData.data[i * 4 + 1] = header.gct[pixel][1];
+				imgData.data[i * 4 + 2] = header.gct[pixel][2];
+				imgData.data[i * 4 + 3] = 255;
+			} else {
+				imgData.data[i * 4 + 3] = 0;
+			}
 		});
 		context.putImageData(imgData, img.left, img.top);
 		return canvas.toDataURL();
