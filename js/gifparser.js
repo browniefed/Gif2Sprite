@@ -1,5 +1,10 @@
 //Accepts a jDataView object
-var GifParser = function(view) {
+//Callbacks
+//--Complete
+//--Progress
+//--Error
+var GifParser = function(view, callbacks) {
+
 	var jview = view,
 		info = {length:jview.buffer.length},
 		img = {
@@ -26,6 +31,109 @@ var GifParser = function(view) {
 
 	function isGif() {
 		return (img.type === 'GIF');
+	}
+
+	function StreamReader(view) {
+		var length = view.buffer.length;
+
+		function readByte(amt) {
+			amt = amt || 1;
+			if (amt === 1) {
+				return view.getUint8(view.tell());
+			} else if (amt > 1) {
+				var bytes = [];
+				for (var i = 0; i < n; i++) {
+					bytes.push(view.getUint8(jview.tell()));
+				}
+				return bytes;
+			} else {
+				return false;
+			}
+		}
+
+		function readUnsigned(little) {
+			little = little || false;
+			return view.getUint16(view.tell(), little);
+		}
+
+		function readString(length) {
+			if (typeof length === 'number') {
+				length = (length < 0 ? 0 : length);
+				return view.getString(length, view.tell());
+			}
+			throw new Error('Did not pass a number to string reader');
+			return '';
+		}
+
+		function readBits() {
+			var bits = [],
+				bite = readByte();
+			for (var i = 7; i >= 0; i--) {
+				bits.push(!!(bite & (1 << i)));
+			}
+			return bits;
+		}
+
+		function bitsToNum(bits) {
+			return bits.reduce(function(s, n) { return s * 2 + n;}, 0);
+		}
+
+		function seek(num) {
+			if (typeof num === 'number') {
+				view.seek(num);
+				return true;
+			}
+			return false;
+		}
+
+		function readSubBlocks(type) {
+			//Make this prettier because it's ugly as sin
+			var subBlockSize = 0, data = '';
+			if (typeof type === 'undefined') {
+				type = false
+			} else {
+				data = [];
+			}
+			do {
+				subBlockSize = readByte();
+				if (!type) {
+					data += jview.getString(subBlockSize, jview.tell());
+				} else {
+					for (var i = 1; i <= subBlockSize; i++) {
+						data.push(jview.getUint8(jview.tell()));
+					}
+				}
+			} while (subBlockSize !== 0)
+			return data;
+		}
+
+		return {
+			readByte: readByte,
+			readUnsigned: readUnsigned,
+			readString: readString,
+			readSubBlocks: readSubBlocks,
+			readBits: readBits,
+			bitsToNum: bitsToNum,
+			seek: seek,
+			length: length
+		}
+
+	}
+
+	function CanvasConvert() {
+
+	}
+
+	function Header() {
+
+		return {
+			getIntro: getIntro,
+			getHeader: getHeader
+		}
+	}
+
+	function Blocks() {
+
 	}
 
 	function getIntro() {
